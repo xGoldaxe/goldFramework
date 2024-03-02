@@ -1,23 +1,29 @@
 import { ServerResponse } from "http";
 import buildHtml from "./buildHtml";
-import render from "./buildInstance";
+import render, { Route } from "./buildInstance";
 import { FunctionalComponent } from "./component";
 import Page404 from "./defaultPages/404";
 import { getPageComponent } from "./getPageContent";
-import Home from "./site/home";
-import Test from "./site/test";
+import { findPagesPaths } from "./compiler/getPages";
 
 var http = require('http');
+var fs = require('fs');
+var path = require('path');
 const statik = require('node-static');
 
-const fileServer = new statik.Server('src/public', { cache: 0 });
+const data = fs.readFileSync('./goldConfig.json');
+const config = JSON.parse(data);
+const fileServer = new statik.Server(`${process.env.PWD}${config.rootDir}/public`);
+const pagesSrc = `${process.env.PWD}${config.rootDir}/pages`;
+const pagesFiles = findPagesPaths(pagesSrc);
+
+const pages: Route[] = pagesFiles.map((filePath: string) => {
+	return ({ path: path.dirname(filePath).substring(pagesSrc.length), component: require(filePath).default });
+});
 
 //create a server object:
 const goldServer = http.createServer(function (req: Request, res: ServerResponse) {
-	const goldServer = render([
-		{ path: "/", component: Home },
-		{ path: "/test", component: Test },
-	]);
+	render(pages);
 	const pageComponent = getPageComponent(req.url);
 	if (pageComponent) {
 		return servePage(res, pageComponent);

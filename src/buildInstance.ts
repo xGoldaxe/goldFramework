@@ -1,6 +1,6 @@
 import { FunctionalComponent } from "./component";
 
-interface Route {
+export interface Route {
 	path: string;
 	component: FunctionalComponent<void>;
 }

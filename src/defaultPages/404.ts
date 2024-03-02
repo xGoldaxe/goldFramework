@@ -1,11 +1,11 @@
 import h, { FunctionalComponent } from "../component";
 
-const Page404: FunctionalComponent<void> = async () => {
+const Page404 = () => {
 	return h('html', {},
-		await h('head', {},
-			await h('title', {}, 'Error 404')),
-		await h('body', {},
-			await h('h1', {}, 'Error 404 - ressource not found'),
+		h('head', {},
+			h('title', {}, 'Error 404')),
+		h('body', {},
+			h('h1', {}, 'Error 404 - ressource not found'),
 		));
 }
 

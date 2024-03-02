@@ -1,7 +1,5 @@
 const GOLD_ELEMENT_SYMBOL$$ = Symbol('GOLD_ELEMENT_SYMBOL$$');
 
-export type FunctionalComponent<T = any> = (props: T) => Promise<GoldComponent> | GoldComponent;
-
 export interface GoldComponent {
 	$$symbol: Symbol,
 	tag: string, // if tag is null => it's a functional component
@@ -9,7 +7,9 @@ export interface GoldComponent {
 	children: (GoldComponent | string | number)[],
 }
 
-export default async function h<T extends { [key: string]: string }>(tag: string | FunctionalComponent, props: T, ...children: (GoldComponent | string | number)[]) {
+export type FunctionalComponent<T = any> = (props: T) => Promise<GoldComponent> | GoldComponent;
+
+export default async function h<T extends { [key: string]: string }>(tag: string | FunctionalComponent, props: T, ...children: (any)[]) {
 	if (typeof tag === 'function') {
 		return tag({ ...props, children: children });
 	};

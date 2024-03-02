@@ -1,29 +1,44 @@
 import { GOLD_INSTANCE } from "./buildInstance";
 import { FunctionalComponent, GoldComponent } from "./component";
+const path = require("path");
 
-export default function getPageContent(pageComponen: FunctionalComponent<void>) {
-	return generatePage(pageComponen);
+export default function getPageContent(pageComponent: FunctionalComponent<void>) {
+	return generatePage(pageComponent);
+}
+
+function arePathsIdentical(path1: string, path2: string) {
+	// Normalize paths by removing leading and trailing slashes
+	const normalizedPath1 = path1.replace(/^\/+|\/+$/g, '');
+	const normalizedPath2 = path2.replace(/^\/+|\/+$/g, '');
+
+	return normalizedPath1 === normalizedPath2;
 }
 
 export function getPageComponent(url: string) {
-	return GOLD_INSTANCE?.find(route => route.path === url)?.component || null;
+	console.log(path.normalize(url), GOLD_INSTANCE)
+	return GOLD_INSTANCE?.find(route => arePathsIdentical(route.path, url))?.component || null;
 }
 
 async function generatePage(pageComponent: FunctionalComponent<void>) {
-	const pageElement = await pageComponent();
+	const pageElement = pageComponent();
 	const pageHtml = renderTree(pageElement);
 	return pageHtml;
 }
 
-function renderTree(pageElement: GoldComponent | string | number): string {
-	if (typeof pageElement === 'string' || typeof pageElement === 'number') {
-		return `${pageElement}`;
+async function renderTree(pageElement: GoldComponent | string | number | Promise<GoldComponent>): Promise<string> {
+	const element = await pageElement;
+	if (typeof element === 'string' || typeof element === 'number') {
+		return `${element}`;
 	}
-	const childContent = pageElement.children.map(renderTree).join('');
-	if (pageElement.tag === null) {
+	const childContentArray = [];
+	for (const child of element.children) {
+		childContentArray.push(await renderTree(child));
+	}
+	const childContent = childContentArray.join('');
+	if (element.tag === null) {
 		return childContent;
 	}
-	return `<${pageElement.tag}${renderAttrs(pageElement.props)}>${childContent}</${pageElement.tag}>`;
+	return `<${element.tag}${renderAttrs(element.props)}>${childContent}</${element.tag}>`;
 }
 
 function renderAttrs(props: { [key: string]: string }) {
